@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,10 +16,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice device;
     public String acc_data;
+    private ListView listView;
+    ArrayList<String> arrayList = new ArrayList<String>();
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -41,17 +52,35 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         textview = (TextView) findViewById(R.id.textView13);
         tvdevice = (TextView) findViewById(R.id.textView15);
         AcceptTV = (TextView) findViewById(R.id.textView14);
+        listView = (ListView) findViewById(R.id.MyListView);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if(mBluetoothAdapter.isEnabled()){
+            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(intent,1);
+        }
         Set<BluetoothDevice> paired = mBluetoothAdapter.getBondedDevices();
         if(paired.size()>0){
             for(BluetoothDevice device1:paired){
-                tvdevice.append("已配对设备:" + device1.getName()+":"+device1.getAddress()+"\n");
                 device = mBluetoothAdapter.getRemoteDevice(device1.getAddress().toString());
+                arrayList.add(device.getName()+ ":" + device.getAddress());
             }
         }
+        tvdevice.setText("点击蓝牙设备以初始化接受环境");
+        final ArrayAdapter arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,arrayList);
+        listView.setAdapter(arrayAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String s = (String) arrayAdapter.getItem(position);
+                String address = s.substring(s.indexOf(":")+1).trim();
+                Toast.makeText(MainActivity.this,"正在初始化接受"+address+"的环境",Toast.LENGTH_SHORT).show();
+                device = mBluetoothAdapter.getRemoteDevice(address);
+                Toast.makeText(MainActivity.this,"接受环境准备好了，请用另一部手机发送数据",Toast.LENGTH_LONG).show();
+                new AcceptThread().start();
+            }
+        });
         SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorManager.registerListener(this,sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),SensorManager.SENSOR_DELAY_UI);
-        new AcceptThread().start();
     }
     public void beginSend(View v){
         new ConnectThread(device).start();
@@ -114,8 +143,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 outputStream = mmSocket.getOutputStream();
                 while (true){
                     outputStream.write(acc_data.getBytes("utf-8"));
-                    int mount = acc_data.length();
-                    Log.d("Demo", String.valueOf(mount));
                     try {
                         sleep(10);
                     } catch (InterruptedException e) {
