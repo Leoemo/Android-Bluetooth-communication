@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,29 +13,29 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
-
-    private TextView textview,tvdevice,AcceptTV;
+    private TextView textview,tvdevice,AcceptTV,introduce;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice device;
     public String acc_data;
     private ListView listView;
+    private String introDuctText ="操作简介如下：\n\n" +
+            "Step1.两部手机均进入当前界面\n\n" +
+            "Step2.需要接受远程手机数据时，在接收端点击远程手机蓝牙地址\n\n" +
+            "Step3.等待系统提示环境已经准备好，在远程手机端点击发送按钮\n\n" +
+            "Final.本机开始实时显示远程手机数据(可双向数据同时传送，方法步骤同上)\n\n";
     ArrayList<String> arrayList = new ArrayList<String>();
     Handler handler = new Handler(){
         @Override
@@ -53,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         tvdevice = (TextView) findViewById(R.id.textView15);
         AcceptTV = (TextView) findViewById(R.id.textView14);
         listView = (ListView) findViewById(R.id.MyListView);
+        introduce = (TextView) findViewById(R.id.introduce);
+        introduce.setText(introDuctText);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if(mBluetoothAdapter.isEnabled()){
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -61,8 +62,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Set<BluetoothDevice> paired = mBluetoothAdapter.getBondedDevices();
         if(paired.size()>0){
             for(BluetoothDevice device1:paired){
-                device = mBluetoothAdapter.getRemoteDevice(device1.getAddress().toString());
-                arrayList.add(device.getName()+ ":" + device.getAddress());
+                arrayList.add(device1.getName()+ ":" + device1.getAddress());
             }
         }
         tvdevice.setText("点击蓝牙设备以初始化接受环境");
@@ -127,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
     //发送线程
     private class ConnectThread extends Thread {
-        public InputStream inputStream ;
         public OutputStream outputStream ;
         private BluetoothSocket mmSocket;
         public ConnectThread(BluetoothDevice device) {
@@ -139,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mBluetoothAdapter.cancelDiscovery();
             try {
                 mmSocket.connect();
-                inputStream = mmSocket.getInputStream();
                 outputStream = mmSocket.getOutputStream();
                 while (true){
                     outputStream.write(acc_data.getBytes("utf-8"));

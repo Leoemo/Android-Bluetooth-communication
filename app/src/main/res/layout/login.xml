@@ -3,7 +3,6 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,12 +14,21 @@
         android:id="@+id/Btn2"
         android:layout_below="@id/Btn1"
         android:text="打开数据传输页面"/>
-    <TextView
+    <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="B14090615（胡运）"
-        android:textSize="30dp"
-        android:layout_alignParentBottom="true"
+        android:onClick="setBtn3"
+        android:text="B14090615(胡运)"
+        android:layout_below="@id/Btn2"
+        android:id="@+id/Btn3"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/Btn3"
+        android:id="@+id/Btn4"
+        android:text="源代码(核心代码)"
+        />
+
 
         />
 </RelativeLayout>
