@@ -14,6 +14,7 @@ public class SourceCode  extends AppCompatActivity {
     private TextView tv1;
     private String github ="完整代码请查看我的主页:github.com/Leoemo";
     private String code = "package leoemo.com.myapplication;\n" +
+            "\n" +
             "import android.bluetooth.BluetoothAdapter;\n" +
             "import android.bluetooth.BluetoothDevice;\n" +
             "import android.bluetooth.BluetoothServerSocket;\n" +
@@ -40,11 +41,18 @@ public class SourceCode  extends AppCompatActivity {
             "import java.util.Set;\n" +
             "import java.util.UUID;\n" +
             "public class MainActivity extends AppCompatActivity implements SensorEventListener {\n" +
-            "    private TextView textview,tvdevice,AcceptTV;\n" +
+            "    private TextView textview,tvdevice,AcceptTV,introduce;\n" +
             "    private BluetoothAdapter mBluetoothAdapter;\n" +
+            "    private BluetoothServerSocket serverSocket;//发送用\n" +
+            "    private BluetoothSocket mmSocket;//接受用\n" +
             "    private BluetoothDevice device;\n" +
             "    public String acc_data;\n" +
             "    private ListView listView;\n" +
+            "    private String introDuctText =\"操作简介如下：\\n\\n\" +\n" +
+            "            \"Step1.两部手机均进入当前界面\\n\\n\" +\n" +
+            "            \"Step2.需要向远程手机发送数据时，在本机点击远程设备地址\\n\\n\" +\n" +
+            "            \"Step3.等待系统提示对方已经同意连接，再在本地点击发送\\n\\n\" +\n" +
+            "            \"Final.远程手机开始实时显示本地手机的数据(可双向数据同时传送，方法步骤同上)\\n\\n\";\n" +
             "    ArrayList<String> arrayList = new ArrayList<String>();\n" +
             "    Handler handler = new Handler(){\n" +
             "        @Override\n" +
@@ -61,18 +69,16 @@ public class SourceCode  extends AppCompatActivity {
             "        tvdevice = (TextView) findViewById(R.id.textView15);\n" +
             "        AcceptTV = (TextView) findViewById(R.id.textView14);\n" +
             "        listView = (ListView) findViewById(R.id.MyListView);\n" +
+            "        introduce = (TextView) findViewById(R.id.introduce);\n" +
+            "        introduce.setText(introDuctText);\n" +
             "        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();\n" +
-            "        if(mBluetoothAdapter.isEnabled()){\n" +
-            "            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);\n" +
-            "            startActivityForResult(intent,1);\n" +
-            "        }\n" +
             "        Set<BluetoothDevice> paired = mBluetoothAdapter.getBondedDevices();\n" +
             "        if(paired.size()>0){\n" +
             "            for(BluetoothDevice device1:paired){\n" +
             "                arrayList.add(device1.getName()+ \":\" + device1.getAddress());\n" +
             "            }\n" +
             "        }\n" +
-            "        tvdevice.setText(\"点击蓝牙设备以初始化接受环境\");\n" +
+            "        tvdevice.setText(\"点击蓝牙设备发起连接请求(如下)\");\n" +
             "        final ArrayAdapter arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,arrayList);\n" +
             "        listView.setAdapter(arrayAdapter);\n" +
             "        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {\n" +
@@ -80,14 +86,14 @@ public class SourceCode  extends AppCompatActivity {
             "            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {\n" +
             "                String s = (String) arrayAdapter.getItem(position);\n" +
             "                String address = s.substring(s.indexOf(\":\")+1).trim();\n" +
-            "                Toast.makeText(MainActivity.this,\"正在初始化接受\"+address+\"的环境\",Toast.LENGTH_SHORT).show();\n" +
+            "                Toast.makeText(MainActivity.this,\"正在向\"+address+\"发起连接\",Toast.LENGTH_SHORT).show();\n" +
             "                device = mBluetoothAdapter.getRemoteDevice(address);\n" +
-            "                Toast.makeText(MainActivity.this,\"接受环境准备好了，请用另一部手机发送数据\",Toast.LENGTH_LONG).show();\n" +
-            "                new AcceptThread().start();\n" +
+            "                Toast.makeText(MainActivity.this,\"对方已接受连接，传送数据吧！\",Toast.LENGTH_SHORT).show();\n" +
             "            }\n" +
             "        });\n" +
             "        SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);\n" +
             "        sensorManager.registerListener(this,sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),SensorManager.SENSOR_DELAY_UI);\n" +
+            "        new AcceptThread().start();\n" +
             "    }\n" +
             "    public void beginSend(View v){\n" +
             "        new ConnectThread(device).start();\n" +
@@ -107,7 +113,6 @@ public class SourceCode  extends AppCompatActivity {
             "    }\n" +
             "    //接受线程\n" +
             "    private class AcceptThread extends Thread{\n" +
-            "        private BluetoothServerSocket serverSocket;\n" +
             "        private BluetoothSocket socket;\n" +
             "        private InputStream inputStream;\n" +
             "        {\n" +
@@ -120,6 +125,7 @@ public class SourceCode  extends AppCompatActivity {
             "            try{\n" +
             "                socket = serverSocket.accept();\n" +
             "                inputStream = socket.getInputStream();\n" +
+            "                serverSocket.close();//关闭无用的server\n" +
             "                while (true){\n" +
             "                    byte[] buffer = new byte[100];\n" +
             "                    int count = inputStream.read(buffer);\n" +
@@ -135,7 +141,6 @@ public class SourceCode  extends AppCompatActivity {
             "    //发送线程\n" +
             "    private class ConnectThread extends Thread {\n" +
             "        public OutputStream outputStream ;\n" +
-            "        private BluetoothSocket mmSocket;\n" +
             "        public ConnectThread(BluetoothDevice device) {\n" +
             "            try {\n" +
             "                mmSocket = device.createRfcommSocketToServiceRecord(UUID.fromString(\"d7afed6b-43c9-4a36-b63b-d2966aa23a91\"));\n" +
@@ -159,6 +164,17 @@ public class SourceCode  extends AppCompatActivity {
             "                    mmSocket.close();\n" +
             "                } catch (IOException closeException) { }\n" +
             "                return;\n" +
+            "            }\n" +
+            "        }\n" +
+            "    }\n" +
+            "    @Override\n" +
+            "    protected void onDestroy() {\n" +
+            "        super.onDestroy();\n" +
+            "        if(mmSocket != null) {\n" +
+            "            try {\n" +
+            "                mmSocket.close();//退出当前activity时释放\n" +
+            "            } catch (IOException e) {\n" +
+            "                e.printStackTrace();\n" +
             "            }\n" +
             "        }\n" +
             "    }\n" +

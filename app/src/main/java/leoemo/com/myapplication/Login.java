@@ -1,10 +1,10 @@
 package leoemo.com.myapplication;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -65,5 +65,23 @@ public class Login extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setClass(Login.this,Leoemo.class);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(bluetoothAdapter.isEnabled()) {
+            bluetoothAdapter.disable();
+            Toast.makeText(Login.this, "由于程序关闭，蓝牙执行关闭操作", Toast.LENGTH_LONG).show();
+        }
+        super.onDestroy();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == event.KEYCODE_BACK){
+            moveTaskToBack(false);
+            Toast.makeText(Login.this,"转入后台运行，而不杀死程序(不关闭蓝牙)",Toast.LENGTH_SHORT).show();
+        }
+        return true;
     }
 }
