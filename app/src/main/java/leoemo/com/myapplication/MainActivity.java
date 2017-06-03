@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private String introDuctText ="操作简介如下：\n\n" +
             "Step1.两部手机均进入当前界面\n\n" +
             "Step2.需要向远程手机发送数据时，在本机点击远程设备地址\n\n" +
-            "Step3.等待系统提示对方已经同意连接，再在本地点击发送\n\n" +
+            "Step3.系统提示对方已经同意连接，自动发送数据\n\n" +
             "Final.远程手机开始实时显示本地手机的数据(可双向数据同时传送，方法步骤同上)\n\n";
     ArrayList<String> arrayList = new ArrayList<String>();
     Handler handler = new Handler(){
@@ -73,7 +73,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 String address = s.substring(s.indexOf(":")+1).trim();
                 Toast.makeText(MainActivity.this,"正在向"+address+"发起连接",Toast.LENGTH_SHORT).show();
                 device = mBluetoothAdapter.getRemoteDevice(address);
-                Toast.makeText(MainActivity.this,"对方已接受连接，传送数据吧！",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this,"正在发送数据...",Toast.LENGTH_SHORT).show();
+                new ConnectThread(device).start();
             }
         });
         SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -81,7 +82,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         new AcceptThread().start();
     }
     public void beginSend(View v){
-        new ConnectThread(device).start();
+       // new ConnectThread(device).start();
+        finish();
     }
     @Override
     public void onSensorChanged(SensorEvent event) {

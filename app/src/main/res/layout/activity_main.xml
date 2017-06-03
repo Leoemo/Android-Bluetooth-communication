@@ -29,7 +29,7 @@
         android:onClick="beginSend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="开始发送"
+        android:text="停止发送"
         android:id="@+id/Send"
         android:layout_toRightOf="@+id/textView8"
         android:layout_toEndOf="@+id/textView8" />
